@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizApp - Kuis</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/quiz.css">
+</head>
+<body>
+    <div class="container">
+        <div class="quiz-box">
+            <h2 id="quizTitle">Nama Kuis</h2>
+            <div id="quizHeader">
+                <div id="timerContainer">Waktu: <span id="quizTimer">10</span>s</div>
+                <div id="questionCounter">Soal <span id="currentQuestionNum">1</span>/<span id="totalQuestionsCount">0</span></div>
+            </div>
+            <div id="questionContainer" class="question-container">
+                <p id="questionText"></p>
+                <div id="optionsContainer" class="options-container">
+                    </div>
+                <div id="feedbackMessage" class="feedback-message"></div>
+                <button id="nextQuestionBtn" class="btn next-btn" disabled>Selanjutnya</button>
+            </div>
+            <div id="resultContainer" class="result-container" style="display: none;">
+                <h3>Hasil Kuis</h3>
+                <p>Skor Anda: <span id="score">0</span>/<span id="totalQuestions">0</span></p>
+                <button class="btn back-to-dashboard-btn">Kembali ke Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/question.js"></script>
+    <script src="js/quiz.js"></script>
+</body>
+</html>
