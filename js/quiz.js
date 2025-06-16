@@ -9,35 +9,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalQuestionsSpan = document.getElementById('totalQuestions');
     const backToDashboardBtn = document.querySelector('.back-to-dashboard-btn');
 
-    // Elemen baru untuk gamifikasi
     const quizTimerElem = document.getElementById('quizTimer');
     const currentQuestionNumElem = document.getElementById('currentQuestionNum');
     const totalQuestionsCountElem = document.getElementById('totalQuestionsCount');
     const feedbackMessageElem = document.getElementById('feedbackMessage');
 
-
     let currentQuizId = localStorage.getItem('currentQuizId');
-    let questions = [];
+    let questions = []; // Akan diisi dari `quizzes` yang dimuat dari `questions.js`
     let currentQuestionIndex = 0;
     let score = 0;
-    let selectedOption = null; // Menyimpan opsi yang dipilih saat ini
+    let selectedOption = null;
 
-    const TIME_PER_QUESTION = 25; // Waktu per soal dalam detik
+    const TIME_PER_QUESTION = 25;
     let timerInterval;
     let timeLeft = TIME_PER_QUESTION;
 
-    // Cek apakah sudah login dan ada kuis yang dipilih
-    if (localStorage.getItem('loggedIn') !== 'true' || !currentQuizId || !quizzes[currentQuizId]) {
-        alert('Anda belum memilih kuis atau belum login. Kembali ke dashboard.');
-        window.location.href = 'dashboard.html';
+    // --- Perubahan Utama di sini ---
+    // Cek apakah guest sudah "masuk" dan kuis telah dipilih
+    // Asumsi `quizzes` sudah tersedia dari `questions.js`
+    if (localStorage.getItem('isGuestLoggedIn') !== 'true' || !currentQuizId || !quizzes[currentQuizId]) {
+        alert('Anda belum memulai sesi atau memilih kuis. Kembali ke halaman utama.');
+        window.location.href = 'index.html'; // Navigasi ke index.html
         return;
     }
 
     // Inisialisasi kuis
     quizTitleElem.textContent = currentQuizId.toUpperCase().replace('_', ' ') + " Kuis";
-    questions = quizzes[currentQuizId];
+    questions = quizzes[currentQuizId]; // Mengambil data kuis dari objek global `quizzes`
     totalQuestionsSpan.textContent = questions.length;
-    totalQuestionsCountElem.textContent = questions.length; // Update total questions count
+    totalQuestionsCountElem.textContent = questions.length;
 
     function startTimer() {
         timeLeft = TIME_PER_QUESTION;
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             quizTimerElem.textContent = timeLeft;
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
-                autoSelectIncorrectAnswer(); // Jika waktu habis, anggap jawaban salah
+                autoSelectIncorrectAnswer();
             }
         }, 1000);
     }
@@ -57,20 +57,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadQuestion() {
-        stopTimer(); // Hentikan timer sebelumnya
-        startTimer(); // Mulai timer untuk soal baru
+        stopTimer();
+        startTimer();
 
         const questionData = questions[currentQuestionIndex];
         questionTextElem.textContent = questionData.question;
-        optionsContainer.innerHTML = ''; // Bersihkan opsi sebelumnya
-        selectedOption = null; // Reset pilihan
-        nextQuestionBtn.disabled = true; // Nonaktifkan tombol 'Selanjutnya'
-        currentQuestionNumElem.textContent = currentQuestionIndex + 1; // Update nomor soal
-        
-        // Sembunyikan feedback message
+        optionsContainer.innerHTML = '';
+        selectedOption = null;
+        nextQuestionBtn.disabled = true;
+        currentQuestionNumElem.textContent = currentQuestionIndex + 1;
+
         feedbackMessageElem.classList.remove('show', 'correct', 'incorrect');
         feedbackMessageElem.textContent = '';
-
 
         questionData.options.forEach(option => {
             const button = document.createElement('button');
@@ -83,48 +81,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function selectOption(button) {
-        // Hanya izinkan pemilihan jika belum ada opsi yang dipilih atau jika ingin mengganti pilihan
         if (!selectedOption || selectedOption !== button) {
-            // Hapus kelas 'selected' dari opsi sebelumnya (jika ada)
             if (selectedOption) {
                 selectedOption.classList.remove('selected');
             }
-
-            // Tambahkan kelas 'selected' ke opsi yang baru dipilih
             button.classList.add('selected');
             selectedOption = button;
-            
-            // Langsung cek jawaban setelah opsi dipilih (feedback instan)
             checkAnswer();
         }
     }
 
     function autoSelectIncorrectAnswer() {
-        // Jika waktu habis dan tidak ada jawaban yang dipilih, anggap salah
         if (!selectedOption) {
-            // Kita bisa menandai opsi pertama sebagai pilihan 'salah' atau secara implisit menganggap tidak ada jawaban
-            // Untuk tujuan feedback, kita bisa langsung memprosesnya sebagai jawaban salah.
             feedbackMessageElem.textContent = "Waktu habis!";
             feedbackMessageElem.classList.add('show', 'incorrect');
         }
-        checkAnswer(true); // Panggil checkAnswer dengan flag waktu habis
+        checkAnswer(true);
     }
 
-
     function checkAnswer(timeUp = false) {
-        stopTimer(); // Hentikan timer setelah jawaban dipilih atau waktu habis
+        stopTimer();
 
         const correctAnswer = questions[currentQuestionIndex].answer;
         let isCorrect = false;
 
-        // Nonaktifkan semua tombol opsi setelah menjawab
         optionsContainer.querySelectorAll('.option-btn').forEach(btn => {
             btn.disabled = true;
         });
 
         if (!timeUp && selectedOption) {
             const chosenAnswer = selectedOption.dataset.option;
-            // Beri warna pada semua opsi untuk menunjukkan jawaban benar/salah
             optionsContainer.querySelectorAll('.option-btn').forEach(btn => {
                 if (btn.dataset.option === correctAnswer) {
                     btn.classList.add('correct');
@@ -143,17 +129,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 feedbackMessageElem.classList.add('show', 'incorrect');
             }
         } else if (timeUp) {
-            // Jika waktu habis dan belum ada pilihan, tampilkan jawaban yang benar
             optionsContainer.querySelectorAll('.option-btn').forEach(btn => {
                 if (btn.dataset.option === correctAnswer) {
                     btn.classList.add('correct');
                 }
             });
-            // Feedback message sudah diatur di autoSelectIncorrectAnswer
         }
 
-
-        nextQuestionBtn.disabled = false; // Aktifkan tombol 'Selanjutnya' setelah feedback
+        nextQuestionBtn.disabled = false;
     }
 
     function showResults() {
@@ -163,8 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     nextQuestionBtn.addEventListener('click', () => {
-        // Tidak perlu memanggil checkAnswer di sini lagi karena sudah dipanggil di selectOption atau autoSelectIncorrectAnswer
-        // Ini hanya untuk navigasi ke soal berikutnya
         currentQuestionIndex++;
         if (currentQuestionIndex < questions.length) {
             loadQuestion();
@@ -174,8 +155,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     backToDashboardBtn.addEventListener('click', () => {
-        localStorage.removeItem('currentQuizId'); // Bersihkan ID kuis saat kembali
-        window.location.href = 'dashboard.html';
+        localStorage.removeItem('currentQuizId');
+        window.location.href = 'dashboard.html'; // Navigasi ke dashboard.html
     });
 
     // Mulai kuis
